@@ -1,0 +1,281 @@
+---
+title: "Predicting donors"
+author: "Hemal Agarwal"
+date: "October 21, 2016"
+output: html_document
+---
+
+
+```{r)}
+setwd("C:/Users/Adroit/Desktop/files_dssap")
+data_outcomes <- read.csv("outcomes.csv")
+data_projects<- read.csv("projects.csv")
+data_resources <- read.csv("resources.csv")
+data_essays <-read.csv("essays.csv")
+data_donations <- read.csv("donations.csv")
+data_submissions <- read.csv("sampleSubmissions.csv")
+```
+
+#Understanding the proportions of projects that have been fully funded
+```{r}
+data_fullyFunded = data_outcomes$fully_funded
+data_fullyFunded_table = (table(data_fullyFunded))
+data_fullyFunded_freq <- as.data.frame((table(data_fullyFunded)))
+#data_fullyFunded
+#     f      t 
+#188643 430683 
+barplot(data_fullyFunded_table)
+count(data_fullyFunded)
+# x   freq
+#1 f 188643
+#2 t 430683
+
+prop_fullyfunded = (data_fullyFunded_freq$Freq[data_fullyFunded_freq$data_fullyFunded == "t"])/length(data_fullyFunded)
+#0.695406
+
+```
+Analysis
+About 70% of the projects have been fully funded
+
+#Understanding the proportion of Exciting projets                                  
+```{r}
+data_excitingProjects = data_outcomes$is_exciting
+data_excitingProjects.freq = as.data.frame(table(data_excitingProjects))
+# data_excitingProjects   Freq
+#1                     f 582616
+#2                     t  36710
+barplot(table(data_excitingProjects))
+#proportion of exciting projects
+length(Exciting_project)/ length(data_outcomes$is_exciting)
+ #0.05927411
+```
+Analysis
+Even though about 70% of the projects are fully funded, only 0.059% of the total projects can be deemed exciting from a business stand point. This is worrying. 
+
+
+#Examinining the factors on which form a criteria for exciting projects
+```{r}
+# the number of projects that had atleast one teacher referred donor
+
+data_atLeastOneTeacherDonor <- data_outcomes$at_least_1_teacher_referred_donor
+data_atLeastOneTeacherDonor.freq <- as.data.frame(table(data_atLeastOneTeacherDonor))  
+# data_atLeastOneTeacherDonor   Freq
+#1                         NA   94398
+#2                           f 400268
+#3                           t 124660
+
+barplot(table(data_atLeastOneTeacherDonor))
+#proportion of projects that had atleast one teacher referred donor
+a<-data_atLeastOneTeacherDonor.freq$Freq[data_atLeastOneTeacherDonor.freq$data_atLeastOneTeacherDonor=="t"]
+b<-data_atLeastOneTeacherDonor.freq$Freq[data_atLeastOneTeacherDonor.freq$data_atLeastOneTeacherDonor=="f"]
+prop<- a/(a+b)
+prop
+# 0.2374802
+
+```
+Analysis:about 23% of the total projects(ignoring the projects for which the information is not available), are atleast one teacher referred donor
+
+
+Projects with atleast one Green donation
+```{r}
+data_atLeastOneGreenDonation <- data_outcomes$at_least_1_green_donation
+data_atLeastOneGreenDonation.freq <- as.data.frame(table(data_atLeastOneGreenDonation))  
+#  data_atLeastOneGreenDonation   Freq
+#1                               94398
+#2                            f 146235
+#3                            t 378693
+
+a<- data_atLeastOneGreenDonation.freq$Freq[data_atLeastOneGreenDonation.freq$data_atLeastOneGreenDonation== "t"]
+b<- data_atLeastOneGreenDonation.freq$Freq[data_atLeastOneGreenDonation.freq$data_atLeastOneGreenDonation== "f"]
+prop<-a/(a+b)
+prop
+
+#[1] 0.7214189
+barplot(table(data_atLeastOneGreenDonation))
+
+```
+About 72% of the projects have atleast one donor who pays via credit card/giftcard
+
+
+
+# Q.Are schools with higher poverty levels likely to get funded any more than schools with lower poverty levels. 
+```{r}
+#analysing by poverty level 
+
+Df_outcomeProjects$poverty<- 0
+Df_outcomeProjects$poverty[Df_outcomeProjects$poverty_level=="moderate poverty"] <- 1
+Df_outcomeProjects$poverty[Df_outcomeProjects$poverty_level=="high poverty"] <- 2
+Df_outcomeProjects$poverty[Df_outcomeProjects$poverty_level=="highest poverty"] <- 3
+                                 
+poverty_stats<- as.data.frame(table(Df_outcomeProjects$poverty))
+# Var1   Freq
+#1    0  16711
+#2    1  90337
+#3    2 173561
+#4    3 383489
+poverty_stats_funded<- as.data.frame(table((Df_outcomeProjects$poverty[Df_outcomeProjects$fully_funded == "t"])))
+poverty_stats <- merge(poverty_stats,poverty_stats_funded,by.x = "Var1",by.y = "Var1",all.x = TRUE)
+                                 
+                                 
+poverty_stats["proportion"] <- (poverty_stats$Freq.y)/(poverty_stats$Freq.x)
+poverty_stats
+barplot(poverty_stats$proportion, legend.text = c("stable","moderate poverty","high poverty","highest poverty"),col = c("green","red","magenta","yellow"),xlab = "Poverty",ylab = "proportion funded")
+```
+Analysis: 
+Maximum number of projects are posted by schools with highest poverty levels.
+While greater proportion of projects from schools with highest poverty level are funded, however, it difference is not too significant. The povertly level of the school does not seem to matter all the much on the funding aspect of the project.This is a matter of concern. The next question to be asked is if donors look at the schools poverty while making a donation? 
+
+
+#Are projects likely to get fully funded based on the type of location ?
+Analysing by the type of location 
+```{r}
+levels(Df_outcomeProjects$school_metro)
+Df_outcomeProjects$Metro_type<- 0
+Df_outcomeProjects$Metro_type[Df_outcomeProjects$school_metro== "rural"] <- 1
+Df_outcomeProjects$Grade[Df_outcomeProjects$school_metro== "suburban"] <- 2
+Df_outcomeProjects$Grade[Df_outcomeProjects$school_metro== "urban"] <- 3
+                                 
+Metro_stat <- as.data.frame(table(Df_outcomeProjects$school_metro))
+Metro_stats_funded <- as.data.frame(table((Df_outcomeProjects$school_metro[Df_outcomeProjects$fully_funded == "t"])))
+Metro_stats <- merge(Metro_stat, Metro_stats_funded ,by.x = "Var1",by.y = "Var1",all.x = TRUE)
+Metro_stats["prop"] = Metro_stats$Freq.y/Metro_stats$Freq.x
+barplot((Metro_stats$prop[2:4]),legend.text= c("rural","suburban","urban"),col = c("green","red","yellow"))
+```
+
+Greater proportion of projects in urban areas are fully funded as compared to rural areas.
+
+#Does the location of the school really matter to the donors? 
+
+```{r}
+levels(data_projects$school_state)
+states<- c(levels(data_projects$school_state))
+states
+                                 
+data_states_totalprojects = data_projects$school_sta
+data_states_totalprojects_freq = table(data_states_totalprojects)
+data_states_totalprojects_freq = as.data.frame(table(data_states_totalprojects))
+data_states_totalprojects_freq
+barplot(table(data_states_totalprojects))
+project.state.orders<- data_states_totalprojects_freq[rev(order(data_states_totalprojects_freq$Freq)),]
+
+barplot(project.state.orders$Freq)
+
+sum(as.numeric(project.state.orders$Freq[1:10]))/sum(as.numeric(project.state.orders$Freq))
+#0.6316914
+sum(as.numeric(project.state.orders$Freq[1:5]))/sum(as.numeric(project.state.orders$Freq)) 
+#0.4859674
+sum(as.numeric(project.state.orders$Freq[1]))/sum(as.numeric(project.state.orders$Freq)) 
+#0.1900954
+```
+Analysis:
+Most of the projects come from specific states.
+Infact 48% of the total projects are posted from 5 states of the 52 :CA, NY, NC,IL, TX, and 19% come from CA alone. 
+
+```{r}
+#Merging dataframes
+Df_outcomeProjects <- merge(data_projects, data_outcomes, by.x="projectid", by.y="projectid", all.x=T)
+data_states_totalprojects_freq <- merge(data_states_totalprojects_freq,fully_funded)
+
+
+#analysing which states make maximi=um donation transactions
+data_state_donations <- data_donations$donor_state
+data_state_donations.freq <- as.data.frame(table(data_state_donations))
+barplot(table(data_state_donations))                            
+data_state_donations.freq_order<- data_state_donations.freq[rev(order(data_state_donations.freq$Freq)),]
+barplot(data_state_donations.freq_order$Freq)
+sum(as.numeric(data_state_donations.freq_order$Freq[2:11]))/sum(as.numeric(data_state_donations.freq_order$Freq[2:61]))
+#0.6732629
+sum(as.numeric(data_state_donations.freq_order$Freq[2:6]))/sum(as.numeric(data_state_donations.freq_order$Freq[2:61]))
+#0.5334914
+sum(as.numeric(data_state_donations.freq_order$Freq[2]))/sum(as.numeric(data_state_donations.freq_order$Freq[2:61]))
+#0.2214089
+```
+Analysis:
+About 53% of the donations (in terms of transcactions) come from 5 states.
+we also observe that ecept for FL, the states that make makinum number of donations are also the ones that post maximum number of projects. 
+Question to answer: does it so happen that donors donate to schools that are located within their state ? 
+
+```{r}
+Df_outcomes.projects.donations <- merge(Df_outcomeProjects,data_donations,by.x="projectid", by.y="projectid", all.x=T)
+
+Df_outcomes.projects.donations$same.state <- 0
+Df_outcomes.projects.donations$same.state[as.character(Df_outcomes.projects.donations$school_state)== as.character(Df_outcomes.projects.donations$donor_state)]<-1
+data_matchstates<- as.data.frame(table(Df_outcomes.projects.donations$same.state))
+# Var1    Freq
+#1    0 1416875
+#2    1  869490
+donor_states_NA <- sum(data_state_donations.freq_order$Freq[1])
+
+barplot(table(Df_outcomes.projects.donations$same.state))
+# examiniming the proportion of people who donated for projects of the schools from the same state(Ignoring the NA values )
+as.numeric(data_matchstates$Freq[data_matchstates$Var1==1])/(as.numeric(data_matchstates$Freq[data_matchstates$Var1==0])+as.numeric(data_matchstates$Freq[data_matchstates$Var1==1])-donor_states_NA)
+#0.4564197
+```
+#KeyInsight
+46% of the donation transactions were made for projects from the same state as donors state.
+It seems like donors like to make donations to schools from their own state.
+
+
+#Are some neighborhoods likely to make more donations than the other neighborhoods? 
+```{r}
+zip_codes<- as.numeric(data_donations$donor_zip)
+zip_codes.freq = as.data.frame(table(zip_codes) )
+zp.orders<- zip_codes.freq[rev(order(zip_codes.freq$Freq)),]
+head(zp.orders,100)
+length(zp.orders$zip_codes)
+sum(as.numeric(zp.orders$Freq[1:100]))/sum(as.numeric(zp.orders$Freq[1:length(zp.orders$zip_codes)]))
+# 0.2326013
+100/length(zp.orders$zip_codes)
+# 0.004802613
+sum(as.numeric(zp.orders$Freq[1:50]))/sum(as.numeric(zp.orders$Freq[1:length(zp.orders$zip_codes)]))
+# 0.178028
+```
+
+#Key Insight
+Some neighborhoods make a lot more donation transactions than the other neighborhoods.
+Infact 0.05% of the neighborhoods make 23% of donation transactions. 
+0.02% of the neighborhoods make 17.8% of total donation transactions. 
+The next question to be asked is if the total donation made by these zipcodes is a lot more than the other zipcodes. 
+
+
+#Are peoply like to make more donations in certain months??
+
+```{r}
+mon.donation<-c()
+mon.donation<-months( as.POSIXct(data_donations$donation_timestamp[1:length(data_donations$donation_timestamp)]))
+mon.donation.freq <- as.data.frame(table(mon.donation))
+order
+mon.order <- mon.donation.freq[rev(order(mon.donation.freq$Freq)),]
+mon.order
+barplot(table(mon.donation))
+sum(mon.order$Freq[1:3])/sum(mon.order$Freq[1:12])
+#0.3974599
+sum(mon.order$Freq[1])/sum(mon.order$Freq[1:12])
+sum(mon.order$Freq[10:12])/sum(mon.order$Freq[1:12])
+
+```
+
+#KeyInsight
+Highest number of donation is made in December, which accounts to almost 17% of the total donation. 
+
+Maximum number of donations are made in 3 months of December,October and january which account to 40% of the total donation transactions.
+
+These are also the festive months. while the least donations are transacted in the summer months of May, June and July accounting to only 11% of the toal transactions.
+
+
+#Some Questions to the partners
+
+1.What are the income levels of various neighbourhoods that form the donor audience for the site? 
+It may be interesting to understand how income levels effect the donations made to school projects. 
+
+2. How is the audience made aware of this site?What means has this website used for its own promotion? 
+Do donors attracted using videos this website or any other interesting medium make an impact on the amount of donation fpr different projects?
+
+3.How does the website decide the order in which the projects are listed on the site? 
+Is it possible that projects that are published on the top of page get more funding than the rest? 
+
+
+
+
+
+
